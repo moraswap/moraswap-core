@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Mora is ERC20("Mora", "MORA"), Ownable {
     uint private _maxSupply = 1000000000e18;
-    uint private _initialSupply = 50000000e18;
+    uint private _initialSupply = 450000000e18;
 
     /**
      * @dev Returns the max supply
