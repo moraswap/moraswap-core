@@ -1,77 +1,130 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.6.12;
+pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "../interfaces/IRewarder.sol";
 
-contract Rewarder is IRewarder {
-    using SafeMath for uint;
+contract Rewarder is IRewarder, Ownable {
+    using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public immutable token;
-    uint public immutable tokenPrecision;
-    address public immutable masterChef;
-    uint public rewardPerSecond;
-    uint public accRewardPerShare;
-    mapping(address => uint) public rewardDebt;
+    IERC20 public immutable rewardToken;
+    IERC20 public immutable lpToken;
+    address public immutable chef;
 
-    constructor(
-        IERC20 _token,
-        uint _rewardPerSecond,
-        address _masterChef,
-        uint _tokenPrecision
-    ) public {
-        token = _token;
-        rewardPerSecond = _rewardPerSecond;
-        masterChef = _masterChef;
-        tokenPrecision = _tokenPrecision == 0 ? 1e18 : _tokenPrecision;
+    // info of each MasterChef user
+    struct UserInfo {
+        uint256 amount;
+        uint256 rewardDebt;
     }
 
+    // info of each MasterChef poolInfo
+    struct PoolInfo {
+        uint256 accRewardPerShare;
+        uint256 lastRewardSecond;
+    }
+
+    // info of the poolInfo
+    PoolInfo public poolInfo;
+    // info of each user that stakes LP tokens
+    mapping(address => UserInfo) public userInfo;
+
+    uint256 public rewardPerSecond;
+    uint256 private constant ACC_TOKEN_PRECISION = 1e18;
+
+    event OnReward(address indexed user, uint256 amount);
+    event SetRewardPerSecond(uint256 oldRate, uint256 newRate);
+
     modifier onlyMasterChef() {
-        require(address(msg.sender) == masterChef, "Rewarder: Only MasterChef can excute");
+        require(msg.sender == chef, "onlyMasterChef: only MasterChef can call this function");
         _;
     }
 
-    function setRewardPerSecond(uint _rewardPerSecond, uint _multiplier, uint _lpSupply) external override onlyMasterChef {
-        update(_multiplier, _lpSupply);
+    constructor(
+        IERC20 _rewardToken,
+        IERC20 _lpToken,
+        uint256 _rewardPerSecond,
+        address _chef
+    ) public {
+        rewardToken = _rewardToken;
+        lpToken = _lpToken;
         rewardPerSecond = _rewardPerSecond;
+        chef = _chef;
+        poolInfo = PoolInfo({lastRewardSecond: block.timestamp, accRewardPerShare: 0});
+    }
+    
+    function setRewardPerSecond(uint256 _rewardPerSecond) external override onlyOwner {
+        updatePool();
+
+        uint256 oldRate = rewardPerSecond;
+        rewardPerSecond = _rewardPerSecond;
+
+        emit SetRewardPerSecond(oldRate, _rewardPerSecond);
     }
 
-    function update(uint _multiplier, uint _lpSupply) internal {
-        uint reward = _multiplier.mul(rewardPerSecond);
-        accRewardPerShare = accRewardPerShare.add(reward.mul(tokenPrecision).div(_lpSupply));
+    function reclaimTokens(address token, uint256 amount, address payable to) public onlyOwner {
+        if (token == address(0)) {
+            to.transfer(amount);
+        } else {
+            IERC20(token).safeTransfer(to, amount);
+        }
     }
 
-    function onReward(address _user, uint _amount, uint _multiplier, uint _lpSupply) external override onlyMasterChef {
-        update(_multiplier, _lpSupply);
+    function updatePool() public returns (PoolInfo memory pool) {
+        pool = poolInfo;
 
-        uint curAccRewardPerShare = accRewardPerShare;
-        uint tmpTokenPrecision = tokenPrecision;
-        uint pending = _amount.mul(curAccRewardPerShare).div(tmpTokenPrecision).sub(rewardDebt[_user]);
-        uint balance = token.balanceOf(address(this));
+        if (block.timestamp > pool.lastRewardSecond) {
+            uint256 lpSupply = lpToken.balanceOf(address(chef));
 
-        if (pending > balance) {
-            pending = balance;
+            if (lpSupply > 0) {
+                uint256 multiplier = block.timestamp.sub(pool.lastRewardSecond);
+                uint256 tokenReward = multiplier.mul(rewardPerSecond);
+                pool.accRewardPerShare = pool.accRewardPerShare.add((tokenReward.mul(ACC_TOKEN_PRECISION).div(lpSupply)));
+            }
+
+            pool.lastRewardSecond = block.timestamp;
+            poolInfo = pool;
+        }
+    }
+
+    function onReward(address _user, uint256 _amount) external override onlyMasterChef {
+        updatePool();
+        PoolInfo memory pool = poolInfo;
+        UserInfo storage user = userInfo[_user];
+        uint256 pendingBal;
+
+        if (user.amount > 0) {
+            pendingBal = (user.amount.mul(pool.accRewardPerShare).div(ACC_TOKEN_PRECISION)).sub(user.rewardDebt);
+            uint256 rewardBal = rewardToken.balanceOf(address(this));
+            if (pendingBal > rewardBal) {
+                rewardToken.safeTransfer(_user, rewardBal);
+            } else {
+                rewardToken.safeTransfer(_user, pendingBal);
+            }
         }
 
-        rewardDebt[_user] = _amount.mul(curAccRewardPerShare).div(tmpTokenPrecision);
-        token.safeTransfer(_user, pending);
+        user.amount = _amount;
+        user.rewardDebt = user.amount.mul(pool.accRewardPerShare).div(ACC_TOKEN_PRECISION);
+
+        emit OnReward(_user, pendingBal);
     }
 
-    function pendingReward(address _user, uint _amount, uint _multiplier, uint _lpSupply) external override view returns (uint) {
-        uint reward = _multiplier.mul(rewardPerSecond);
-        uint tmpTokenPrecision = tokenPrecision;
-        uint tmpAccRewardPerShare = accRewardPerShare.add(reward.mul(tmpTokenPrecision).div(_lpSupply));
-        uint pending = _amount.mul(tmpAccRewardPerShare).div(tmpTokenPrecision).sub(rewardDebt[_user]);
+    function pendingReward(address _user, uint256 _amount) external view override returns (uint256) {
+        PoolInfo memory pool = poolInfo;
+        UserInfo storage user = userInfo[_user];
 
-        uint balance = token.balanceOf(address(this));
+        uint256 accRewardPerShare = pool.accRewardPerShare;
+        uint256 lpSupply = lpToken.balanceOf(address(chef));
 
-        if (pending > balance) {
-            pending = balance;
+        if (block.timestamp > pool.lastRewardSecond && lpSupply != 0) {
+            uint256 multiplier = block.timestamp.sub(pool.lastRewardSecond);
+            uint256 tokenReward = multiplier.mul(rewardPerSecond);
+            accRewardPerShare = accRewardPerShare.add(tokenReward.mul(ACC_TOKEN_PRECISION).div(lpSupply));
         }
 
-        return pending;
-    }
+        return (user.amount.mul(accRewardPerShare).div(ACC_TOKEN_PRECISION)).sub(user.rewardDebt);
+    } 
 }

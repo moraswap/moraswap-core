@@ -76,9 +76,7 @@ contract MasterChef is Ownable, ReentrancyGuard {
 
         address rewarder = pool.rewarder;
         if (rewarder != address(0)) {
-            uint multiplier = getMultiplier(pool.lastRewardTime, block.timestamp);
-            uint lpSupply = pool.totalLp;
-            IRewarder(rewarder).setRewardPerSecond(_rewardPerSecond, multiplier, lpSupply);
+            IRewarder(rewarder).setRewardPerSecond(_rewardPerSecond);
         }
 
         emit SetBonusEmissionRate(_pid, _rewardPerSecond);
@@ -86,7 +84,7 @@ contract MasterChef is Ownable, ReentrancyGuard {
 
     function setPercent(
         uint256 _burnPercent) external onlyOwner {
-        require(_burnPercent < 100, "setPercent: Percent cannot exceed 100");
+        require(_burnPercent < 100e18, "setPercent: Percent cannot exceed 100");
         updateAllPools();
         burnPercent = _burnPercent;
 
@@ -133,7 +131,7 @@ contract MasterChef is Ownable, ReentrancyGuard {
     }
 
     function pendingReward(uint256 _pid, address _user) external view returns (uint256 pendingMora, uint256 pendingBonus) {
-        require(_pid < poolInfo.length, "pendingMora: The pool does not exist");
+        require(_pid < poolInfo.length, "pendingReward: The pool does not exist");
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
         uint256 accMoraPerShare = pool.accMoraPerShare;
@@ -149,7 +147,7 @@ contract MasterChef is Ownable, ReentrancyGuard {
 
             address rewarder = pool.rewarder;
             if (rewarder != address(0)) {
-                pendingBonus = IRewarder(rewarder).pendingReward(_user, user.amount, multiplier, lpSupply);
+                pendingBonus = IRewarder(rewarder).pendingReward(_user, user.amount);
             }
         }
         pendingMora = user.amount.mul(accMoraPerShare).div(1e18).sub(user.rewardDebt);
@@ -169,7 +167,7 @@ contract MasterChef is Ownable, ReentrancyGuard {
             _reward = maxSupply.sub(totalSupply);
         }
         
-        burnMora = _reward.mul(burnPercent).div(100);
+        burnMora = _reward.mul(burnPercent).div(100e18);
         farmMora = _reward.sub(burnMora);
     }
 
@@ -215,8 +213,7 @@ contract MasterChef is Ownable, ReentrancyGuard {
             
             address rewarder = pool.rewarder;
             if (rewarder != address(0)) {
-                uint multiplier = getMultiplier(pool.lastRewardTime, block.timestamp);
-                IRewarder(rewarder).onReward(address(msg.sender), amount, multiplier, lpSupply);
+                IRewarder(rewarder).onReward(address(msg.sender), amount);
             }
         }
 
@@ -246,8 +243,7 @@ contract MasterChef is Ownable, ReentrancyGuard {
             
             address rewarder = pool.rewarder;
             if (rewarder != address(0)) {
-                uint multiplier = getMultiplier(pool.lastRewardTime, block.timestamp);
-                IRewarder(rewarder).onReward(address(msg.sender), amount, multiplier, lpSupply);
+                IRewarder(rewarder).onReward(address(msg.sender), amount);
             }
         }
 

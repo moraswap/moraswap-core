@@ -34,7 +34,7 @@ library MoraSwapLibrary {
                         hex"ff",
                         factory,
                         keccak256(abi.encodePacked(token0, token1)),
-                        hex"2dcdc401a45af4a3f324d5ce12413d0498c9008c1dac2721469508e33d479f7b"
+                        hex"5e60a73d5771bebe13c2aec4784c2f5bd78d04e8e89e164a5299407beb2d324a"
                     )
                 )
             )

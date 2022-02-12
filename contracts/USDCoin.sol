@@ -360,7 +360,7 @@ contract ERC20 is Context, IERC20 {
     constructor (string memory name_, string memory symbol_) public {
         _name = name_;
         _symbol = symbol_;
-        _decimals = 18;
+        _decimals = 6;
     }
 
     /**
@@ -383,7 +383,7 @@ contract ERC20 is Context, IERC20 {
      * For example, if `decimals` equals `2`, a balance of `505` tokens should
      * be displayed to a user as `5,05` (`505 / 10 ** 2`).
      *
-     * Tokens usually opt for a value of 18, imitating the relationship between
+     * Tokens usually opt for a value of 9, imitating the relationship between
      * Ether and Wei. This is the value {ERC20} uses, unless {_setupDecimals} is
      * called.
      *
@@ -583,7 +583,7 @@ contract ERC20 is Context, IERC20 {
     }
 
     /**
-     * @dev Sets {decimals} to a value other than the default one of 18.
+     * @dev Sets {decimals} to a value other than the default one of 9.
      *
      * WARNING: This function should only be called from the constructor. Most
      * applications that interact with token contracts will not expect
@@ -679,7 +679,7 @@ abstract contract Ownable is Context {
 
 
 contract USDCoin is ERC20("USD Coin", "USDC") {
-    uint256 private _initialSupply = 10000000e18;
+    uint256 private _initialSupply = 10000000e6;
 
     /**
      * @dev See {ERC20-_beforeTokenTransfer}.
