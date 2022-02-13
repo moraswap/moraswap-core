@@ -55,7 +55,7 @@ describe("Arom", function () {
     expect(await this.arom.balanceOf(this.alice.address)).to.equal("26")
     expect(await this.arom.balanceOf(this.bob.address)).to.equal("5")
     expect(await this.mora.balanceOf(this.arom.address)).to.equal("52")
-    expect(await this.mora.balanceOf(this.alice.address)).to.equal("70")
+    expect(await this.mora.balanceOf(this.alice.address)).to.equal("500000000000000000000000070")
     expect(await this.mora.balanceOf(this.bob.address)).to.equal("98")
   })
 
