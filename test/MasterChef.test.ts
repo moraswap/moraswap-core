@@ -203,7 +203,7 @@ describe("MasterChef", function () {
       // At this point:
       //   Bob should have: 900 + 5*100*0.9 = 1350 (+90)
       expect(await this.mora.balanceOf(this.bob.address)).to.be.within(1350, 1440)
-      expect(await this.mora.totalSupply()).to.be.within(500001500, 500001600)
+      expect(await this.mora.totalSupply()).to.be.within(500000000000000000000001500, 500000000000000000000001600)
     })
 
     it("should not distribute MORAs if no one deposit", async function () {
@@ -223,12 +223,12 @@ describe("MasterChef", function () {
       await this.lp.connect(this.bob).approve(this.chef.address, "1000") // t-55
       await advanceTimeAndBlock(100) // t+55
 
-      expect(await this.mora.totalSupply()).to.equal("500000000")
+      expect(await this.mora.totalSupply()).to.equal("500000000000000000000000000")
       await advanceTimeAndBlock(5) // t+60
-      expect(await this.mora.totalSupply()).to.equal("500000000")
+      expect(await this.mora.totalSupply()).to.equal("500000000000000000000000000")
       await advanceTimeAndBlock(5) // t+65
       await this.chef.connect(this.bob).deposit(0, "10") // t+66
-      expect(await this.mora.totalSupply()).to.equal("500000000")
+      expect(await this.mora.totalSupply()).to.equal("500000000000000000000000000")
       expect(await this.mora.balanceOf(this.bob.address)).to.equal("0")
       expect(await this.lp.balanceOf(this.bob.address)).to.equal("990")
       await advanceTimeAndBlock(10) // t+76
@@ -237,9 +237,9 @@ describe("MasterChef", function () {
       await this.chef.connect(this.bob).withdraw(0, "10") // t+78
 
       // At this point:
-      //   - Total supply should be: 500000000 + 12*100 = 500001200 (+100)
+      //   - Total supply should be: 500000000000000000000000000 + 12*100 = 500000000000000000000001200 (+100)
       //   - Bob should have: 12*100*0.9 = 1080 (+90)
-      expect(await this.mora.totalSupply()).to.be.within(500001200, 500001300)
+      expect(await this.mora.totalSupply()).to.be.within(500000000000000000000001200, 500000000000000000000001300)
       expect(await this.mora.balanceOf(this.bob.address)).to.be.within(1080, 1170)
     })
 
@@ -281,7 +281,7 @@ describe("MasterChef", function () {
       //   MasterChef should have: 1000 - 510 - 100 = 390 (+100)
       await advanceTimeAndBlock(1) // t+19
       await this.chef.connect(this.alice).deposit(0, "10", { from: this.alice.address }) // t+20
-      expect(await this.mora.totalSupply()).to.be.within(500001000, 500001100)
+      expect(await this.mora.totalSupply()).to.be.within(500000000000000000000001000, 500000000000000000000001100)
       // Becaues LP rewards are divided among participants and rounded down, we account
       // for rounding errors with an offset
       expect(await this.mora.balanceOf(this.alice.address)).to.be.within(510 - this.tokenOffset, 600 + this.tokenOffset)
@@ -293,7 +293,7 @@ describe("MasterChef", function () {
       //   MasterChef should have: 390 + 1000 - 557 - 100 = 733 (+100)
       await advanceTimeAndBlock(9) // t+29
       await this.chef.connect(this.bob).withdraw(0, "5", { from: this.bob.address }) // t+30
-      expect(await this.mora.totalSupply()).to.be.within(500002000, 500002100)
+      expect(await this.mora.totalSupply()).to.be.within(500000000000000000000002000, 500000000000000000000002100)
       expect(await this.mora.balanceOf(this.alice.address)).to.be.within(510 - this.tokenOffset, 600 + this.tokenOffset)
       expect(await this.mora.balanceOf(this.bob.address)).to.be.within(557 - this.tokenOffset, 647 + this.tokenOffset)
       expect(await this.mora.balanceOf(this.carol.address)).to.equal("0")
@@ -307,7 +307,7 @@ describe("MasterChef", function () {
       await this.chef.connect(this.bob).withdraw(0, "15", { from: this.bob.address }) // t+50
       await advanceTimeAndBlock(9) // t+59
       await this.chef.connect(this.carol).withdraw(0, "30", { from: this.carol.address }) // t+60
-      expect(await this.mora.totalSupply()).to.be.within(5000, 5100)
+      expect(await this.mora.totalSupply()).to.be.within(500000000000000000000005000, 500000000000000000000005100)
       // Alice should have: 510 + 10*2/7*100*0.9 + 10*2/6.5*100*0.9 = 1044 (+90)
       expect(await this.mora.balanceOf(this.alice.address)).to.be.within(1044 - this.tokenOffset, 1134 + this.tokenOffset)
       // Bob should have: 557 + 10*1.5/6.5*100*0.9 + 10*1.5/4.5*100*0.9 = 1064 (+90)
