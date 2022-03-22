@@ -58,15 +58,14 @@ describe("Mora", function () {
   })
 
   it("should fail if you try to do bad transfers", async function () {
-    await this.mora.mint(this.alice.address, "100")
-    await expect(this.mora.transfer(this.carol.address, "110")).to.be.revertedWith("ERC20: transfer amount exceeds balance")
+    await expect(this.mora.transfer(this.carol.address, "500000000000000000000000001")).to.be.revertedWith("ERC20: transfer amount exceeds balance")
     await expect(this.mora.connect(this.bob).transfer(this.carol.address, "1", { from: this.bob.address })).to.be.revertedWith(
       "ERC20: transfer amount exceeds balance"
     )
   })
 
   it("should not exceed max supply of 1b", async function () {
-    await expect(this.mora.mint(this.alice.address, "500000000000000000000000001")).to.be.revertedWith("MORA::mint: cannot exceed max supply")
+    await expect(this.mora.mint(this.alice.address, "500000000000000000000000001")).to.be.revertedWith("ERC20Capped: Max supply exceeded")
     await this.mora.mint(this.alice.address, "500000000000000000000000000")
   })
 
