@@ -20,6 +20,11 @@
         "internalType": "address",
         "name": "_chef",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_startTime",
+        "type": "uint256"
       }
     ],
     "stateMutability": "nonpayable",
@@ -174,7 +179,12 @@
       },
       {
         "internalType": "uint256",
-        "name": "lastRewardSecond",
+        "name": "lastRewardTime",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalLp",
         "type": "uint256"
       }
     ],
@@ -276,7 +286,12 @@
           },
           {
             "internalType": "uint256",
-            "name": "lastRewardSecond",
+            "name": "lastRewardTime",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "totalLp",
             "type": "uint256"
           }
         ],

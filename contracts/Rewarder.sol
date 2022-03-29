@@ -24,7 +24,8 @@ contract Rewarder is IRewarder, Ownable {
     // info of each MasterChef poolInfo
     struct PoolInfo {
         uint256 accRewardPerShare;
-        uint256 lastRewardSecond;
+        uint256 lastRewardTime;
+        uint256 totalLp;
     }
 
     // info of the poolInfo
@@ -47,13 +48,15 @@ contract Rewarder is IRewarder, Ownable {
         IERC20 _rewardToken,
         IERC20 _lpToken,
         uint256 _rewardPerSecond,
-        address _chef
+        address _chef,
+        uint256 _startTime
     ) public {
         rewardToken = _rewardToken;
         lpToken = _lpToken;
         rewardPerSecond = _rewardPerSecond;
         chef = _chef;
-        poolInfo = PoolInfo({lastRewardSecond: block.timestamp, accRewardPerShare: 0});
+        poolInfo = PoolInfo({lastRewardTime: _startTime, accRewardPerShare: 0, totalLp: 0});
+
     }
     
     function setRewardPerSecond(uint256 _rewardPerSecond) external override onlyOwner {
@@ -76,23 +79,23 @@ contract Rewarder is IRewarder, Ownable {
     function updatePool() public returns (PoolInfo memory pool) {
         pool = poolInfo;
 
-        if (block.timestamp > pool.lastRewardSecond) {
-            uint256 lpSupply = lpToken.balanceOf(address(chef));
+        if (block.timestamp > pool.lastRewardTime) {
+            uint256 lpSupply = pool.totalLp;
 
             if (lpSupply > 0) {
-                uint256 multiplier = block.timestamp.sub(pool.lastRewardSecond);
+                uint256 multiplier = block.timestamp.sub(pool.lastRewardTime);
                 uint256 tokenReward = multiplier.mul(rewardPerSecond);
                 pool.accRewardPerShare = pool.accRewardPerShare.add((tokenReward.mul(ACC_TOKEN_PRECISION).div(lpSupply)));
             }
 
-            pool.lastRewardSecond = block.timestamp;
+            pool.lastRewardTime = block.timestamp;
             poolInfo = pool;
         }
     }
 
     function onReward(address _user, uint256 _amount) external override onlyMasterChef {
         updatePool();
-        PoolInfo memory pool = poolInfo;
+        PoolInfo storage pool = poolInfo;
         UserInfo storage user = userInfo[_user];
         uint256 pendingBal;
 
@@ -106,6 +109,7 @@ contract Rewarder is IRewarder, Ownable {
             }
         }
 
+        pool.totalLp = pool.totalLp.add(_amount).sub(user.amount);
         user.amount = _amount;
         user.rewardDebt = user.amount.mul(pool.accRewardPerShare).div(ACC_TOKEN_PRECISION);
 
@@ -117,14 +121,14 @@ contract Rewarder is IRewarder, Ownable {
         UserInfo storage user = userInfo[_user];
 
         uint256 accRewardPerShare = pool.accRewardPerShare;
-        uint256 lpSupply = lpToken.balanceOf(address(chef));
+        uint256 lpSupply = pool.totalLp;
 
-        if (block.timestamp > pool.lastRewardSecond && lpSupply != 0) {
-            uint256 multiplier = block.timestamp.sub(pool.lastRewardSecond);
+        if (block.timestamp > pool.lastRewardTime && lpSupply != 0) {
+            uint256 multiplier = block.timestamp.sub(pool.lastRewardTime);
             uint256 tokenReward = multiplier.mul(rewardPerSecond);
             accRewardPerShare = accRewardPerShare.add(tokenReward.mul(ACC_TOKEN_PRECISION).div(lpSupply));
         }
 
         return (user.amount.mul(accRewardPerShare).div(ACC_TOKEN_PRECISION)).sub(user.rewardDebt);
-    } 
+    }
 }

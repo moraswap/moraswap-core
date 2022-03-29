@@ -144,13 +144,12 @@ contract MasterChef is Ownable, ReentrancyGuard {
             ( , uint256 farmMora) = calculate(moraReward);
 
             accMoraPerShare = accMoraPerShare.add(farmMora.mul(1e18).div(lpSupply));
-
-            address rewarder = pool.rewarder;
-            if (rewarder != address(0)) {
-                pendingBonus = IRewarder(rewarder).pendingReward(_user, user.amount);
-            }
         }
         pendingMora = user.amount.mul(accMoraPerShare).div(1e18).sub(user.rewardDebt);
+        address rewarder = pool.rewarder;
+        if (rewarder != address(0)) {
+            pendingBonus = IRewarder(rewarder).pendingReward(_user, user.amount);
+        }
     }
 
     function updateAllPools() public {
@@ -210,17 +209,17 @@ contract MasterChef is Ownable, ReentrancyGuard {
         if (amount > 0) {
             uint256 pending = amount.mul(accMoraPerShare).div(1e18).sub(user.rewardDebt);
             mora.safeTransfer(address(msg.sender), pending);
-            
-            address rewarder = pool.rewarder;
-            if (rewarder != address(0)) {
-                IRewarder(rewarder).onReward(address(msg.sender), amount);
-            }
         }
 
         if(_amount > 0) {
             pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
             user.amount = amount.add(_amount);
             pool.totalLp = lpSupply.add(_amount);
+        }
+            
+        address rewarder = pool.rewarder;
+        if (rewarder != address(0)) {
+            IRewarder(rewarder).onReward(address(msg.sender), user.amount);
         }
         user.rewardDebt = user.amount.mul(accMoraPerShare).div(1e18);
 
@@ -240,17 +239,17 @@ contract MasterChef is Ownable, ReentrancyGuard {
         if (amount > 0) {
             uint256 pending = amount.mul(accMoraPerShare).div(1e18).sub(user.rewardDebt);
             mora.safeTransfer(address(msg.sender), pending);
-            
-            address rewarder = pool.rewarder;
-            if (rewarder != address(0)) {
-                IRewarder(rewarder).onReward(address(msg.sender), amount);
-            }
         }
 
         if(_amount > 0) {
             user.amount = amount.sub(_amount);
             pool.totalLp = lpSupply.sub(_amount);
             pool.lpToken.safeTransfer(address(msg.sender), _amount);
+        }
+            
+        address rewarder = pool.rewarder;
+        if (rewarder != address(0)) {
+            IRewarder(rewarder).onReward(address(msg.sender), user.amount);
         }
         user.rewardDebt = user.amount.mul(accMoraPerShare).div(1e18);
 

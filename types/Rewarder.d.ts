@@ -180,18 +180,20 @@ export class Rewarder extends Contract {
     poolInfo(
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber] & {
+      [BigNumber, BigNumber, BigNumber] & {
         accRewardPerShare: BigNumber;
-        lastRewardSecond: BigNumber;
+        lastRewardTime: BigNumber;
+        totalLp: BigNumber;
       }
     >;
 
     "poolInfo()"(
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber] & {
+      [BigNumber, BigNumber, BigNumber] & {
         accRewardPerShare: BigNumber;
-        lastRewardSecond: BigNumber;
+        lastRewardTime: BigNumber;
+        totalLp: BigNumber;
       }
     >;
 
@@ -299,18 +301,20 @@ export class Rewarder extends Contract {
   poolInfo(
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, BigNumber] & {
+    [BigNumber, BigNumber, BigNumber] & {
       accRewardPerShare: BigNumber;
-      lastRewardSecond: BigNumber;
+      lastRewardTime: BigNumber;
+      totalLp: BigNumber;
     }
   >;
 
   "poolInfo()"(
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, BigNumber] & {
+    [BigNumber, BigNumber, BigNumber] & {
       accRewardPerShare: BigNumber;
-      lastRewardSecond: BigNumber;
+      lastRewardTime: BigNumber;
+      totalLp: BigNumber;
     }
   >;
 
@@ -418,18 +422,20 @@ export class Rewarder extends Contract {
     poolInfo(
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber] & {
+      [BigNumber, BigNumber, BigNumber] & {
         accRewardPerShare: BigNumber;
-        lastRewardSecond: BigNumber;
+        lastRewardTime: BigNumber;
+        totalLp: BigNumber;
       }
     >;
 
     "poolInfo()"(
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber] & {
+      [BigNumber, BigNumber, BigNumber] & {
         accRewardPerShare: BigNumber;
-        lastRewardSecond: BigNumber;
+        lastRewardTime: BigNumber;
+        totalLp: BigNumber;
       }
     >;
 
@@ -482,18 +488,20 @@ export class Rewarder extends Contract {
     updatePool(
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber] & {
+      [BigNumber, BigNumber, BigNumber] & {
         accRewardPerShare: BigNumber;
-        lastRewardSecond: BigNumber;
+        lastRewardTime: BigNumber;
+        totalLp: BigNumber;
       }
     >;
 
     "updatePool()"(
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber] & {
+      [BigNumber, BigNumber, BigNumber] & {
         accRewardPerShare: BigNumber;
-        lastRewardSecond: BigNumber;
+        lastRewardTime: BigNumber;
+        totalLp: BigNumber;
       }
     >;
 
